@@ -1191,5 +1191,85 @@
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') close(); });
   })();
 </script>
+
+<!-- ================= SÉLECTEUR DE THÈMES (bandeau provisoire) ================= -->
+<style>
+  body{padding-bottom:104px}
+  #theme-bar{position:fixed;left:0;right:0;bottom:0;z-index:200;
+    background:rgba(255,255,255,.93);backdrop-filter:blur(12px);
+    border-top:1px solid rgba(0,0,0,.12);box-shadow:0 -10px 34px -14px rgba(0,0,0,.22);
+    padding:11px 16px 13px;font-family:'Inter',sans-serif}
+  #theme-bar .tb-head{font-size:12.5px;font-weight:700;color:#2a2a2a;margin-bottom:9px;display:flex;align-items:center;gap:9px}
+  #theme-bar .tb-head .ic{width:18px;height:18px;color:#c0703a;flex:none}
+  #theme-bar .tb-head span{font-weight:400;color:#888}
+  #theme-bar .tb-close{margin-left:auto;border:none;background:none;cursor:pointer;color:#888;
+    font-size:20px;line-height:1;padding:0 2px}
+  #theme-bar .tb-close:hover{color:#2a2a2a}
+  #theme-bar .tb-row{display:flex;gap:9px;overflow-x:auto;padding-bottom:3px}
+  #theme-bar .tb-row::-webkit-scrollbar{height:6px}
+  #theme-bar .tb-row::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+  #theme-bar .tb-sw{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;
+    border:1.5px solid;border-radius:999px;padding:7px 14px 7px 9px;cursor:pointer;
+    font-size:13px;font-weight:600;font-family:'Inter',sans-serif;
+    transition:transform .12s ease,box-shadow .12s ease;white-space:nowrap}
+  #theme-bar .tb-sw:hover{transform:translateY(-2px)}
+  #theme-bar .tb-sw .d{width:15px;height:15px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.5)}
+  #theme-bar .tb-sw.active{box-shadow:0 0 0 3px rgba(0,0,0,.16)}
+  @media(max-width:640px){#theme-bar .tb-head span{display:none}}
+</style>
+
+<div id="theme-bar">
+  <div class="tb-head">
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 2a10 10 0 0 0 0 20c1.7 0 1.5-1.5 1.5-2.5 0-1 1-1.5 2-1.5h2A4.5 4.5 0 0 0 22 13.5 10 10 0 0 0 12 2z"/></svg>
+    Choix du thème <span>· cliquez une pastille pour changer l'ambiance du site (bandeau provisoire)</span>
+    <button class="tb-close" id="tb-close" title="Masquer" aria-label="Masquer le bandeau">&times;</button>
+  </div>
+  <div class="tb-row" id="tb-row"></div>
+</div>
+
+<script>
+  const THEMES = [
+    {n:"Cuivre & Crème", v:{"--bg":"#FBF7F1","--bg-2":"#F2EBE0","--surface":"#FFFFFF","--surface-2":"#F7F1E8","--line":"#E6DBCC","--ink":"#241B14","--muted":"#6B5D50","--muted-2":"#9A8B7C","--accent":"#C0703A","--accent-text":"#9E5526","--accent-deep":"#864823"}},
+    {n:"Bleu Électrique", v:{"--bg":"#F6F8FC","--bg-2":"#E9EFF8","--surface":"#FFFFFF","--surface-2":"#F1F5FB","--line":"#DCE4F0","--ink":"#15202E","--muted":"#56657A","--muted-2":"#8A99AD","--accent":"#2563EB","--accent-text":"#1D4ED8","--accent-deep":"#1E40AF"}},
+    {n:"Vert Énergie", v:{"--bg":"#F5FAF6","--bg-2":"#E8F3EC","--surface":"#FFFFFF","--surface-2":"#EFF7F1","--line":"#D6E6DB","--ink":"#14241A","--muted":"#51685A","--muted-2":"#86A090","--accent":"#16A34A","--accent-text":"#15803D","--accent-deep":"#166534"}},
+    {n:"Jaune Volt", v:{"--bg":"#FAFAF7","--bg-2":"#EFEFE9","--surface":"#FFFFFF","--surface-2":"#F5F5EF","--line":"#E2E2D8","--ink":"#1C1C1A","--muted":"#5E5E57","--muted-2":"#91918A","--accent":"#F5A300","--accent-text":"#9C6A00","--accent-deep":"#7A5400"}},
+    {n:"Bleu Acier", v:{"--bg":"#F4F8F9","--bg-2":"#E5EFF1","--surface":"#FFFFFF","--surface-2":"#EEF5F6","--line":"#D5E3E6","--ink":"#102026","--muted":"#4F646B","--muted-2":"#84999F","--accent":"#0E7490","--accent-text":"#0C6378","--accent-deep":"#134E5C"}},
+    {n:"Orange Chantier", v:{"--bg":"#FAF9F7","--bg-2":"#EFEDE9","--surface":"#FFFFFF","--surface-2":"#F5F3EF","--line":"#E4E0D9","--ink":"#1F1A15","--muted":"#5F574E","--muted-2":"#948B80","--accent":"#EA580C","--accent-text":"#C2410C","--accent-deep":"#9A3412"}},
+    {n:"Rouge Brique", v:{"--bg":"#FBF6F3","--bg-2":"#F2E6E1","--surface":"#FFFFFF","--surface-2":"#F8EEE9","--line":"#E8D5CC","--ink":"#261712","--muted":"#6B544B","--muted-2":"#9C857B","--accent":"#C0392B","--accent-text":"#A5281C","--accent-deep":"#842016"}},
+    {n:"Ardoise & Cuivre", v:{"--bg":"#0E141C","--bg-2":"#121A24","--surface":"#161F2B","--surface-2":"#1B2533","--line":"#26313F","--ink":"#ECE6DD","--muted":"#94A0AE","--muted-2":"#6E7A88","--accent":"#CF8049","--accent-text":"#E6A877","--accent-deep":"#A85F32"}},
+    {n:"Nuit Indigo", v:{"--bg":"#0B1020","--bg-2":"#0F1530","--surface":"#141B36","--surface-2":"#1A2245","--line":"#283156","--ink":"#E8ECF7","--muted":"#99A4C2","--muted-2":"#6B769A","--accent":"#5B8CFF","--accent-text":"#8AB0FF","--accent-deep":"#3461D6"}},
+    {n:"Graphite & Lime", v:{"--bg":"#14161A","--bg-2":"#181B20","--surface":"#1E2228","--surface-2":"#242A31","--line":"#323A44","--ink":"#EAEEF2","--muted":"#9AA6B2","--muted-2":"#6C7884","--accent":"#A3E635","--accent-text":"#BEF264","--accent-deep":"#65A30D"}}
+  ];
+  // Le site déployé utilise --copper*/--amber ; on mappe les variables sémantiques de la démo.
+  const VMAP = {"--accent":"--copper","--accent-text":"--copper-bright","--accent-deep":"--copper-deep"};
+  const _root = document.documentElement;
+  const STORE = "ce_theme_preview";
+  function applyTheme(i){
+    const t = THEMES[i]; if(!t) return;
+    for(const k in t.v){ _root.style.setProperty(VMAP[k] || k, t.v[k]); }
+    _root.style.setProperty('--amber', t.v['--accent']); // teinte chaude suit l'accent
+    document.querySelectorAll('#theme-bar .tb-sw').forEach((b,j)=>b.classList.toggle('active', j===i));
+    try{ localStorage.setItem(STORE, i); }catch(e){}
+  }
+  (function(){
+    const row = document.getElementById('tb-row');
+    THEMES.forEach((t,i)=>{
+      const b = document.createElement('button');
+      b.className = 'tb-sw';
+      b.style.background = t.v['--surface'];
+      b.style.color = t.v['--ink'];
+      b.style.borderColor = t.v['--accent'];
+      b.innerHTML = '<span class="d" style="background:'+t.v['--accent']+'"></span>'+t.n;
+      b.addEventListener('click', ()=>applyTheme(i));
+      row.appendChild(b);
+    });
+    let saved = 0; try{ saved = parseInt(localStorage.getItem(STORE)||'0',10)||0; }catch(e){}
+    applyTheme(saved);
+    document.getElementById('tb-close').addEventListener('click', ()=>{
+      document.getElementById('theme-bar').style.display='none';
+      document.body.style.paddingBottom='0';
+    });
+  })();
+</script>
 </body>
 </html>
