@@ -64,12 +64,10 @@ export default async function handler(req, res) {
     }
     const ext = ALLOWED[mime];
 
+    // Description et categorie sont facultatives : sur un chantier, publier vite
+    // vaut mieux que ne pas publier. La galerie s'adapte a ce qui est fourni.
     const cap = String(caption ?? '').trim().slice(0, 120);
-    if (!cap) {
-      return res.status(400).json({ error: 'La description est obligatoire.' });
-    }
-
-    const cat = CATEGORIES.includes(category) ? category : 'Autre';
+    const cat = CATEGORIES.includes(category) ? category : null;
     const id = randomUUID();
 
     const blob = await put(`${IMG_PREFIX}${id}.${ext}`, buffer, {

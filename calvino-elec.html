@@ -1078,10 +1078,12 @@
   async function loadUploaded() {
     const photos = await fetchJson('/api/realisations');
     if (!photos) return [];
+    // Description et catégorie sont facultatives côté /admin : elles peuvent
+    // manquer, la vignette s'affiche alors sans légende.
     return photos.map(p => ({
       image_url: p.url,
-      caption: p.caption,
-      kicker: p.category,
+      caption: p.caption || '',
+      kicker: p.category || '',
       link: null
     }));
   }
@@ -1104,19 +1106,32 @@
 
     const img = document.createElement('img');
     img.src = item.image_url;
-    img.alt = item.caption;
+    // Une image sans texte alternatif serait muette pour les lecteurs d'écran.
+    img.alt = item.caption || 'Réalisation Calvino Elec';
     img.loading = 'lazy';
     img.decoding = 'async';
 
-    const cap = document.createElement('div');
-    cap.className = 'cap';
-    const k = document.createElement('div');
-    k.className = 'k';
-    k.textContent = item.kicker;
-    const t = document.createElement('div');
-    t.className = 't';
-    t.textContent = truncate(item.caption);
-    cap.append(k, t);
+    const parts = [img];
+
+    // Sans description ni catégorie, pas de bandeau : un cartouche vide en bas
+    // de vignette ferait cassé.
+    if (item.kicker || item.caption) {
+      const cap = document.createElement('div');
+      cap.className = 'cap';
+      if (item.kicker) {
+        const k = document.createElement('div');
+        k.className = 'k';
+        k.textContent = item.kicker;
+        cap.appendChild(k);
+      }
+      if (item.caption) {
+        const t = document.createElement('div');
+        t.className = 't';
+        t.textContent = truncate(item.caption);
+        cap.appendChild(t);
+      }
+      parts.push(cap);
+    }
 
     // Une photo envoyée par Gaëtan n'a pas de publication à ouvrir : on n'en
     // fait un lien que si la source en fournit un.
@@ -1125,10 +1140,10 @@
       a.href = item.link;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.append(img, cap);
+      a.append(...parts);
       shot.appendChild(a);
     } else {
-      shot.append(img, cap);
+      shot.append(...parts);
     }
 
     if (typeof io !== 'undefined') io.observe(shot);

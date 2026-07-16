@@ -1,25 +1,5 @@
 import { checkPassword, createSessionCookie, clearSessionCookie, isAuthenticated } from './_auth.js';
-
-// Limite les tentatives par IP. En memoire : remis a zero a chaque cold start,
-// ce qui est acceptable ici (un seul utilisateur, mot de passe fort).
-const attempts = new Map();
-const MAX_ATTEMPTS = 8;
-const WINDOW_MS = 10 * 60 * 1000;
-
-function tooManyAttempts(ip) {
-  const now = Date.now();
-  const rec = attempts.get(ip);
-  if (!rec || now > rec.reset) {
-    attempts.set(ip, { count: 0, reset: now + WINDOW_MS });
-    return false;
-  }
-  return rec.count >= MAX_ATTEMPTS;
-}
-
-function recordFailure(ip) {
-  const rec = attempts.get(ip);
-  if (rec) rec.count++;
-}
+import { checkLoginRate, resetLoginRate, clientIp } from './_ratelimit.js';
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
@@ -35,18 +15,34 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Methode non autorisee' });
   }
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || 'inconnue';
-  if (tooManyAttempts(ip)) {
-    return res.status(429).json({ error: 'Trop de tentatives. Reessayez dans 10 minutes.' });
-  }
+  const ip = clientIp(req);
 
   try {
-    const { password } = req.body ?? {};
-    if (!checkPassword(password)) {
-      recordFailure(ip);
-      return res.status(401).json({ error: 'Mot de passe incorrect.' });
+    // Le quota se consomme avant la verification du mot de passe : sinon il
+    // suffirait d'essayer en boucle sans jamais etre compte.
+    const rate = await checkLoginRate(ip);
+    if (!rate.success) {
+      const min = Math.ceil(rate.retryAfter / 60);
+      res.setHeader('Retry-After', String(rate.retryAfter));
+      return res.status(429).json({
+        error: `Trop de tentatives. Reessayez dans ${min} minute${min > 1 ? 's' : ''}.`,
+        retryAfter: rate.retryAfter
+      });
     }
 
+    if (!checkPassword(req.body?.password)) {
+      // Le nombre d'essais restants est annonce : c'est une information que
+      // l'attaquant peut de toute facon deduire, et elle evite a Gaetan de se
+      // faire bloquer sans comprendre.
+      return res.status(401).json({
+        error: rate.remaining > 0
+          ? `Mot de passe incorrect. Encore ${rate.remaining} essai${rate.remaining > 1 ? 's' : ''}.`
+          : 'Mot de passe incorrect.',
+        remaining: rate.remaining
+      });
+    }
+
+    await resetLoginRate(ip);
     res.setHeader('Set-Cookie', createSessionCookie(req));
     return res.status(200).json({ ok: true });
   } catch (err) {

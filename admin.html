@@ -183,12 +183,12 @@
         </div>
 
         <div class="field">
-          <label for="caption">Description <span class="hint">— visible sous la photo</span></label>
-          <input type="text" id="caption" maxlength="120" placeholder="Ex : Tableau électrique refait à neuf" required />
+          <label for="caption">Description <span class="hint">— facultatif, visible sous la photo</span></label>
+          <input type="text" id="caption" maxlength="120" placeholder="Ex : Tableau électrique refait à neuf" />
         </div>
 
         <div class="field">
-          <label for="category">Type de chantier</label>
+          <label for="category">Type de chantier <span class="hint">— facultatif</span></label>
           <select id="category"></select>
         </div>
 
@@ -216,6 +216,12 @@
   let selectedDataUrl = null;
 
   const CATEGORIES = ['Électricité','Borne IRVE','Éclairage','Rénovation','Climatisation','Photovoltaïque','Autre'];
+
+  // Option vide en premier : ne rien choisir est un cas normal, pas un oubli.
+  const none = document.createElement('option');
+  none.value = ''; none.textContent = '— Aucun —';
+  $('category').appendChild(none);
+
   CATEGORIES.forEach(c => {
     const o = document.createElement('option');
     o.value = c; o.textContent = c;
@@ -391,21 +397,30 @@
       item.className = 'item';
 
       const img = document.createElement('img');
-      img.src = p.url; img.alt = p.caption; img.loading = 'lazy';
+      img.src = p.url;
+      img.alt = p.caption || 'Réalisation Calvino Elec';
+      img.loading = 'lazy';
 
       const info = document.createElement('div');
       info.className = 'item-info';
       const cat = document.createElement('div');
-      cat.className = 'item-cat'; cat.textContent = p.category;
+      cat.className = 'item-cat';
+      cat.textContent = p.category || 'Sans type';
       const cap = document.createElement('div');
-      cap.className = 'item-cap'; cap.textContent = p.caption;
+      cap.className = 'item-cap';
+      // Sans description, on montre la date : Gaëtan doit pouvoir identifier
+      // laquelle il supprime.
+      cap.textContent = p.caption || new Date(p.created_at).toLocaleDateString('fr-FR', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+      if (!p.caption) cap.style.fontStyle = 'italic';
       info.append(cat, cap);
 
       const del = document.createElement('button');
       del.className = 'item-del';
       del.type = 'button';
       del.title = 'Supprimer cette photo';
-      del.setAttribute('aria-label', 'Supprimer : ' + p.caption);
+      del.setAttribute('aria-label', 'Supprimer : ' + (p.caption || 'photo sans description'));
       del.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
       del.addEventListener('click', () => remove(p, item));
 
@@ -419,7 +434,8 @@
 
   async function remove(photo, node){
     // confirm() bloque le rendu mais reste le plus clair pour un geste destructif.
-    if (!confirm('Supprimer cette photo du site ?\n\n« ' + photo.caption + ' »')) return;
+    const label = photo.caption ? '\n\n« ' + photo.caption + ' »' : '';
+    if (!confirm('Supprimer cette photo du site ?' + label)) return;
     node.style.opacity = '.4';
     try {
       const r = await fetch('/api/admin-delete', {
