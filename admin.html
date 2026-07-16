@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Mes réalisations — Calvino Elec</title>
+<meta name="theme-color" content="#FAF9F7" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#FAF9F7; --bg-2:#EFEDE9; --surface:#FFFFFF; --surface-2:#F5F3EF;
+    --line:#E4E0D9; --copper:#EA580C; --copper-bright:#C2410C; --copper-deep:#9A3412;
+    --ink:#1F1A15; --muted:#5F574E; --muted-2:#948B80;
+    --ok:#15803D; --ok-bg:#F0FDF4; --err:#B91C1C; --err-bg:#FEF2F2;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif; font-size:17px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block}
+  h1,h2{font-family:'Bricolage Grotesque',system-ui,sans-serif;line-height:1.15;letter-spacing:-0.02em}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+
+  header{background:var(--surface);border-bottom:1px solid var(--line);padding:16px 0;position:sticky;top:0;z-index:10}
+  .head-in{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:20px}
+  .brand span{color:var(--copper)}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 22px;border-radius:11px;border:1px solid transparent;
+    font:inherit;font-weight:600;cursor:pointer;transition:.15s;
+    min-height:48px; /* cible tactile confortable sur chantier */
+  }
+  .btn-primary{background:var(--copper);color:#fff}
+  .btn-primary:hover:not(:disabled){background:var(--copper-bright)}
+  .btn-ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--ink)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .btn-sm{padding:8px 14px;min-height:auto;font-size:14px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px}
+  main{padding:32px 0 80px}
+
+  label{display:block;font-weight:600;font-size:14px;margin-bottom:7px}
+  .hint{font-weight:400;color:var(--muted-2);font-size:13px}
+  input[type=password],input[type=text],select,textarea{
+    width:100%;padding:13px 15px;border:1px solid var(--line);border-radius:10px;
+    font:inherit;background:var(--surface);color:var(--ink);min-height:48px;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--copper);outline-offset:1px;border-color:transparent}
+  .field{margin-bottom:18px}
+
+  .msg{padding:13px 16px;border-radius:10px;font-size:15px;margin-bottom:18px;display:none}
+  .msg.show{display:block}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);border:1px solid #BBF7D0}
+  .msg.err{background:var(--err-bg);color:var(--err);border:1px solid #FECACA}
+
+  /* Zone de depot */
+  .drop{
+    border:2px dashed var(--line);border-radius:var(--radius);padding:34px 20px;text-align:center;
+    cursor:pointer;transition:.15s;background:var(--surface-2);
+  }
+  .drop:hover,.drop.over{border-color:var(--copper);background:#FFF7ED}
+  .drop svg{width:38px;height:38px;stroke:var(--copper);margin:0 auto 10px}
+  .drop-t{font-weight:600}
+  .drop-s{font-size:14px;color:var(--muted-2);margin-top:3px}
+
+  .preview{display:none;gap:16px;align-items:flex-start}
+  .preview.show{display:flex}
+  .preview img{width:130px;height:130px;object-fit:cover;border-radius:11px;border:1px solid var(--line);flex:none}
+  .preview-meta{flex:1;min-width:0}
+  .preview-name{font-size:14px;color:var(--muted);word-break:break-word}
+  .preview-size{font-size:13px;color:var(--muted-2);margin-top:3px}
+
+  .sec-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:38px 0 16px}
+  .count{font-size:14px;color:var(--muted-2);font-weight:500}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .item{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--surface)}
+  .item img{aspect-ratio:4/3;object-fit:cover;width:100%}
+  .item-info{padding:10px 12px}
+  .item-cat{font-size:11px;font-weight:600;color:var(--copper);text-transform:uppercase;letter-spacing:.05em}
+  .item-cap{font-size:13px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item-del{
+    position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:9px;
+    background:rgba(255,255,255,.94);border:1px solid var(--line);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:.15s;
+  }
+  .item-del:hover{background:var(--err);border-color:var(--err)}
+  .item-del:hover svg{stroke:#fff}
+  .item-del svg{width:16px;height:16px;stroke:var(--err);fill:none;stroke-width:2}
+
+  .empty{text-align:center;padding:44px 20px;color:var(--muted-2);border:1px dashed var(--line);border-radius:var(--radius)}
+
+  .spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  #loginView{max-width:400px;margin:60px auto}
+  .login-t{text-align:center;margin-bottom:24px}
+  .login-t h1{font-size:26px;margin-bottom:6px}
+  .login-t p{color:var(--muted);font-size:15px}
+
+  @media (max-width:720px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .card{padding:20px}
+    body{font-size:16px}
+  }
+  @media (max-width:440px){
+    .grid{grid-template-columns:1fr}
+    .preview{flex-direction:column}
+    .preview img{width:100%;height:190px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap head-in">
+    <div class="brand">Calvino <span>Elec</span></div>
+    <button id="logoutBtn" class="btn btn-ghost btn-sm" style="display:none">Se déconnecter</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- CONNEXION -->
+  <section id="loginView" style="display:none">
+    <div class="login-t">
+      <h1>Mes réalisations</h1>
+      <p>Entrez le mot de passe pour ajouter vos photos de chantier.</p>
+    </div>
+    <div class="card">
+      <div id="loginMsg" class="msg err"></div>
+      <form id="loginForm">
+        <div class="field">
+          <label for="pwd">Mot de passe</label>
+          <input type="password" id="pwd" autocomplete="current-password" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Se connecter</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ESPACE ADMIN -->
+  <section id="adminView" style="display:none">
+    <h1 style="font-size:28px;margin-bottom:6px">Mes réalisations</h1>
+    <p style="color:var(--muted);margin-bottom:26px">
+      Les photos ajoutées ici s'affichent en premier sur le site, avant les publications Facebook.
+    </p>
+
+    <div class="card">
+      <div id="upMsg" class="msg"></div>
+
+      <form id="upForm">
+        <div class="field">
+          <div id="drop" class="drop" role="button" tabindex="0" aria-label="Choisir une photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v13"/>
+            </svg>
+            <div class="drop-t">Choisir une photo</div>
+            <div class="drop-s">Prenez-la avec votre téléphone ou glissez un fichier</div>
+          </div>
+
+          <div id="preview" class="preview">
+            <img id="previewImg" alt="Aperçu de la photo sélectionnée" />
+            <div class="preview-meta">
+              <div class="preview-name" id="previewName"></div>
+              <div class="preview-size" id="previewSize"></div>
+              <button type="button" id="clearBtn" class="btn btn-ghost btn-sm" style="margin-top:10px">Changer de photo</button>
+            </div>
+          </div>
+          <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden />
+        </div>
+
+        <div class="field">
+          <label for="caption">Description <span class="hint">— visible sous la photo</span></label>
+          <input type="text" id="caption" maxlength="120" placeholder="Ex : Tableau électrique refait à neuf" required />
+        </div>
+
+        <div class="field">
+          <label for="category">Type de chantier</label>
+          <select id="category"></select>
+        </div>
+
+        <button type="submit" id="upBtn" class="btn btn-primary" style="width:100%" disabled>
+          Publier sur le site
+        </button>
+      </form>
+    </div>
+
+    <div class="sec-title">
+      <h2 style="font-size:20px">Photos en ligne</h2>
+      <span class="count" id="count"></span>
+    </div>
+    <div id="list"></div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const loginView = $('loginView'), adminView = $('adminView');
+  let selectedDataUrl = null;
+
+  const CATEGORIES = ['Électricité','Borne IRVE','Éclairage','Rénovation','Climatisation','Photovoltaïque','Autre'];
+  CATEGORIES.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    $('category').appendChild(o);
+  });
+
+  function msg(el, text, kind){
+    el.textContent = text;
+    el.className = 'msg show ' + kind;
+  }
+  function hideMsg(el){ el.className = 'msg'; }
+
+  /* ---------- Redimensionnement cote navigateur ----------
+     Une photo de telephone pese 3 a 8 Mo, or une fonction Vercel refuse les
+     corps de requete au-dela de 4,5 Mo. On reduit donc a 1600 px avant l'envoi :
+     ca passe la limite et ca allege la galerie pour les visiteurs.            */
+  const MAX_EDGE = 1600;
+
+  function resize(file){
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width: w, height: h } = img;
+        if (w > MAX_EDGE || h > MAX_EDGE) {
+          const r = Math.min(MAX_EDGE / w, MAX_EDGE / h);
+          w = Math.round(w * r); h = Math.round(h * r);
+        }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(cv.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image illisible')); };
+      img.src = url;
+    });
+  }
+
+  const kb = dataUrl => Math.round(dataUrl.length * 0.75 / 1024);
+
+  async function handleFile(file){
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      msg($('upMsg'), "Format non accepté. Choisissez une photo JPEG, PNG ou WebP.", 'err');
+      return;
+    }
+    hideMsg($('upMsg'));
+    try {
+      selectedDataUrl = await resize(file);
+      $('previewImg').src = selectedDataUrl;
+      $('previewName').textContent = file.name;
+      $('previewSize').textContent =
+        Math.round(file.size/1024) + ' Ko → ' + kb(selectedDataUrl) + ' Ko après optimisation';
+      $('preview').classList.add('show');
+      $('drop').style.display = 'none';
+      $('upBtn').disabled = false;
+    } catch {
+      msg($('upMsg'), "Impossible de lire cette image. Essayez une autre photo.", 'err');
+    }
+  }
+
+  function clearFile(){
+    selectedDataUrl = null;
+    $('file').value = '';
+    $('preview').classList.remove('show');
+    $('drop').style.display = '';
+    $('upBtn').disabled = true;
+  }
+
+  $('drop').addEventListener('click', () => $('file').click());
+  $('drop').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('file').click(); }
+  });
+  $('file').addEventListener('change', e => handleFile(e.target.files[0]));
+  $('clearBtn').addEventListener('click', clearFile);
+
+  ['dragenter','dragover'].forEach(ev =>
+    $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev =>
+    $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('over'); }));
+  $('drop').addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+
+  /* ---------- Connexion ---------- */
+  $('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    hideMsg($('loginMsg'));
+    try {
+      const r = await fetch('/api/admin-login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password: $('pwd').value })
+      });
+      const d = await r.json();
+      if (r.ok) { $('pwd').value=''; showAdmin(); }
+      else msg($('loginMsg'), d.error || 'Connexion impossible.', 'err');
+    } catch {
+      msg($('loginMsg'), 'Problème de connexion. Vérifiez votre réseau.', 'err');
+    }
+  });
+
+  $('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/admin-login', { method:'DELETE' });
+    location.reload();
+  });
+
+  /* ---------- Envoi ---------- */
+  $('upForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!selectedDataUrl) return;
+    const btn = $('upBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Envoi en cours…';
+    hideMsg($('upMsg'));
+    try {
+      const r = await fetch('/api/admin-upload', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          dataUrl: selectedDataUrl,
+          caption: $('caption').value,
+          category: $('category').value
+        })
+      });
+      const d = await r.json();
+      if (r.ok) {
+        msg($('upMsg'), 'Photo publiée ! Elle est visible sur le site.', 'ok');
+        $('caption').value = '';
+        clearFile();
+        loadList();
+      } else if (r.status === 401) {
+        location.reload();
+      } else {
+        msg($('upMsg'), d.error || "Échec de l'envoi.", 'err');
+      }
+    } catch {
+      msg($('upMsg'), 'Problème de connexion pendant l\'envoi.', 'err');
+    } finally {
+      btn.innerHTML = 'Publier sur le site';
+      btn.disabled = !selectedDataUrl;
+    }
+  });
+
+  /* ---------- Liste ---------- */
+  async function loadList(){
+    try {
+      const r = await fetch('/api/realisations?t=' + Date.now());
+      const photos = await r.json();
+      render(photos);
+    } catch {
+      $('list').innerHTML = '<div class="empty">Impossible de charger les photos.</div>';
+    }
+  }
+
+  function render(photos){
+    $('count').textContent = photos.length
+      ? photos.length + (photos.length > 1 ? ' photos' : ' photo')
+      : '';
+
+    if (!photos.length) {
+      $('list').innerHTML =
+        '<div class="empty">Aucune photo pour l\'instant.<br>Ajoutez-en une : elle apparaîtra sur le site en quelques secondes.</div>';
+      return;
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+
+    photos.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'item';
+
+      const img = document.createElement('img');
+      img.src = p.url; img.alt = p.caption; img.loading = 'lazy';
+
+      const info = document.createElement('div');
+      info.className = 'item-info';
+      const cat = document.createElement('div');
+      cat.className = 'item-cat'; cat.textContent = p.category;
+      const cap = document.createElement('div');
+      cap.className = 'item-cap'; cap.textContent = p.caption;
+      info.append(cat, cap);
+
+      const del = document.createElement('button');
+      del.className = 'item-del';
+      del.type = 'button';
+      del.title = 'Supprimer cette photo';
+      del.setAttribute('aria-label', 'Supprimer : ' + p.caption);
+      del.innerHTML = '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
+      del.addEventListener('click', () => remove(p, item));
+
+      item.append(img, info, del);
+      grid.appendChild(item);
+    });
+
+    $('list').innerHTML = '';
+    $('list').appendChild(grid);
+  }
+
+  async function remove(photo, node){
+    // confirm() bloque le rendu mais reste le plus clair pour un geste destructif.
+    if (!confirm('Supprimer cette photo du site ?\n\n« ' + photo.caption + ' »')) return;
+    node.style.opacity = '.4';
+    try {
+      const r = await fetch('/api/admin-delete', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id: photo.id })
+      });
+      if (r.ok) loadList();
+      else if (r.status === 401) location.reload();
+      else { node.style.opacity=''; msg($('upMsg'), 'Suppression impossible.', 'err'); }
+    } catch {
+      node.style.opacity='';
+      msg($('upMsg'), 'Problème de connexion.', 'err');
+    }
+  }
+
+  function showAdmin(){
+    loginView.style.display = 'none';
+    adminView.style.display = '';
+    $('logoutBtn').style.display = '';
+    loadList();
+  }
+
+  // La session est un cookie HttpOnly : seul le serveur peut dire si elle est valide.
+  (async function init(){
+    try {
+      const r = await fetch('/api/admin-login');
+      const d = await r.json();
+      if (d.authenticated) showAdmin();
+      else loginView.style.display = '';
+    } catch {
+      loginView.style.display = '';
+    }
+  })();
+})();
+</script>
+</body>
+</html>

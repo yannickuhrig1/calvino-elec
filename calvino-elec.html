@@ -372,7 +372,12 @@
   .foot-logo{height:32px}
 </style>
 <meta name="theme-color" content="#FBF7F1" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%3E%3Crect%20width%3D%2724%27%20height%3D%2724%27%20rx%3D%275%27%20fill%3D%27%23C0703A%27/%3E%3Cpath%20d%3D%27M13%202L4.5%2013.5H11L9.5%2022L19.5%209H12.5L13%202Z%27%20fill%3D%27%23FFF7EF%27/%3E%3C/svg%3E" />
+<!-- Favicon : le vrai logo Calvino Elec, sur pastille blanche pour rester
+     lisible sur les barres d'onglets sombres (le « E » du logo est noir). -->
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png" />
 <link rel="canonical" href="https://calvino-elec.fr/" />
 <!-- Open Graph / partage réseaux sociaux -->
 <meta property="og:type" content="website" />
@@ -1049,77 +1054,112 @@
   },{threshold:.12, rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // ── Chargement des photos Facebook ────────────────────────────────
-  async function loadFacebookPhotos() {
+  // ── Chargement de la galerie ──────────────────────────────────────
+  // Les photos envoyées par Gaëtan passent en premier : ce sont ses vrais
+  // chantiers. Le feed Facebook ne sert qu'à compléter la grille quand il n'y
+  // en a pas assez, car il contient aussi des publications promotionnelles.
+  const GAL_TARGET = 6;
+  const CAP_MAX = 60;
+
+  const truncate = txt => txt.length > CAP_MAX ? txt.substring(0, CAP_MAX - 3) + '...' : txt;
+
+  async function fetchJson(url) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) return null;
+      const d = await r.json();
+      return Array.isArray(d) && d.length ? d : null;
+    } catch (err) {
+      console.warn('Galerie — échec de ' + url, err);
+      return null;
+    }
+  }
+
+  async function loadUploaded() {
+    const photos = await fetchJson('/api/realisations');
+    if (!photos) return [];
+    return photos.map(p => ({
+      image_url: p.url,
+      caption: p.caption,
+      kicker: p.category,
+      link: null
+    }));
+  }
+
+  async function loadFacebook() {
+    const photos = await fetchJson('/api/facebook-photos')
+      || await fetchJson('/.netlify/functions/facebook-photos');
+    if (!photos) return [];
+    return photos.map(p => ({
+      image_url: p.image_url,
+      caption: p.caption,
+      kicker: 'Réalisation Facebook',
+      link: p.link
+    }));
+  }
+
+  function renderShot(item) {
+    const shot = document.createElement('div');
+    shot.className = 'shot reveal';
+
+    const img = document.createElement('img');
+    img.src = item.image_url;
+    img.alt = item.caption;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+
+    const cap = document.createElement('div');
+    cap.className = 'cap';
+    const k = document.createElement('div');
+    k.className = 'k';
+    k.textContent = item.kicker;
+    const t = document.createElement('div');
+    t.className = 't';
+    t.textContent = truncate(item.caption);
+    cap.append(k, t);
+
+    // Une photo envoyée par Gaëtan n'a pas de publication à ouvrir : on n'en
+    // fait un lien que si la source en fournit un.
+    if (item.link) {
+      const a = document.createElement('a');
+      a.href = item.link;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.append(img, cap);
+      shot.appendChild(a);
+    } else {
+      shot.append(img, cap);
+    }
+
+    if (typeof io !== 'undefined') io.observe(shot);
+    return shot;
+  }
+
+  async function loadGallery() {
     if (window.location.protocol === 'file:') {
-      console.log("Protocole local file:// détecté. Utilisation des réalisations statiques.");
+      console.log('Protocole local file:// détecté. Utilisation des réalisations statiques.');
       return;
     }
 
     const gal = document.querySelector('.gal');
     if (!gal) return;
 
-    const endpoints = ['/api/facebook-photos', '/.netlify/functions/facebook-photos'];
-    let photos = null;
+    const uploaded = await loadUploaded();
+    const items = uploaded.slice();
 
-    for (const ep of endpoints) {
-      try {
-        const response = await fetch(ep);
-        if (response.ok) {
-          photos = await response.json();
-          if (photos && photos.length > 0) {
-            break;
-          }
-        }
-      } catch (err) {
-        console.warn(`Échec de récupération depuis l'endpoint ${ep}:`, err);
-      }
+    if (items.length < GAL_TARGET) {
+      const fb = await loadFacebook();
+      items.push(...fb.slice(0, GAL_TARGET - items.length));
     }
 
-    if (photos && photos.length > 0) {
-      gal.innerHTML = '';
-      photos.forEach(photo => {
-        const shot = document.createElement('div');
-        shot.className = 'shot reveal';
+    // Sans rien à afficher, on garde les réalisations statiques du HTML.
+    if (!items.length) return;
 
-        const link = document.createElement('a');
-        link.href = photo.link;
-        link.target = '_blank';
-        link.rel = 'noopener';
-
-        const img = document.createElement('img');
-        img.src = photo.image_url;
-        img.alt = photo.caption;
-        img.loading = 'lazy';
-
-        const cap = document.createElement('div');
-        cap.className = 'cap';
-
-        const k = document.createElement('div');
-        k.className = 'k';
-        k.textContent = 'Réalisation Facebook';
-
-        const t = document.createElement('div');
-        t.className = 't';
-        t.textContent = photo.caption.length > 60 
-          ? photo.caption.substring(0, 57) + '...' 
-          : photo.caption;
-
-        cap.appendChild(k);
-        cap.appendChild(t);
-        link.appendChild(img);
-        link.appendChild(cap);
-        shot.appendChild(link);
-        gal.appendChild(shot);
-
-        if (typeof io !== 'undefined') {
-          io.observe(shot);
-        }
-      });
-    }
+    gal.innerHTML = '';
+    items.forEach(item => gal.appendChild(renderShot(item)));
   }
 
-  loadFacebookPhotos();
+  loadGallery();
 
   // Menu mobile : scroll vers contact (nav simplifiée)
   document.getElementById('menuBtn').addEventListener('click', ()=>{
