@@ -8,3 +8,9 @@ node_modules/
 
 .vercel
 .env*
+
+# Documentation d'outillage deposee par l'integration Upstash : utile en local,
+# sans rapport avec le code du site.
+.agents/
+.claude/
+skills-lock.json
