@@ -1,0 +1,10 @@
+{
+  "name": "calvino-elec",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Site vitrine Calvino Elec — electricien a Coin-les-Cuvry (57)",
+  "dependencies": {
+    "@vercel/blob": "^2.6.1"
+  }
+}

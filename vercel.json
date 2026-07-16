@@ -1,5 +1,14 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/calvino-elec.html" }
+    { "source": "/", "destination": "/calvino-elec.html" },
+    { "source": "/admin", "destination": "/admin.html" }
+  ],
+  "headers": [
+    {
+      "source": "/admin",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    }
   ]
 }
